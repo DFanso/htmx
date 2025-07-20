@@ -42,7 +42,7 @@ A comprehensive, hands-on tutorial for learning HTMX through interactive example
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/DFanso/htmx
    cd htmx
    ```
 

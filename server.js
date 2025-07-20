@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
+const WebSocket = require('ws');
 
 const app = express();
 const PORT = 3000;
@@ -257,7 +258,82 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'learn-htmx.html'));
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`🚀 HTMX Learning Server running at http://localhost:${PORT}`);
     console.log(`📖 Open your browser and visit: http://localhost:${PORT}`);
 });
+
+// WebSocket Server
+const wss = new WebSocket.Server({ server });
+
+let messageCount = 0;
+const connectedClients = new Set();
+
+wss.on('connection', (ws) => {
+    connectedClients.add(ws);
+    console.log(`📡 WebSocket client connected. Total clients: ${connectedClients.size}`);
+    
+    // Send welcome message
+    ws.send(JSON.stringify({
+        type: 'connection',
+        message: 'Connected to WebSocket server!',
+        timestamp: new Date().toLocaleTimeString(),
+        clientCount: connectedClients.size
+    }));
+    
+    // Handle incoming messages
+    ws.on('message', (data) => {
+        try {
+            const message = JSON.parse(data);
+            messageCount++;
+            
+            // Broadcast message to all connected clients
+            const broadcastData = {
+                type: 'message',
+                id: messageCount,
+                username: message.username || 'Anonymous',
+                message: message.message,
+                timestamp: new Date().toLocaleTimeString()
+            };
+            
+            connectedClients.forEach(client => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify(broadcastData));
+                }
+            });
+        } catch (error) {
+            console.error('WebSocket message error:', error);
+        }
+    });
+    
+    // Handle client disconnect
+    ws.on('close', () => {
+        connectedClients.delete(ws);
+        console.log(`📡 WebSocket client disconnected. Total clients: ${connectedClients.size}`);
+    });
+    
+    // Handle errors
+    ws.on('error', (error) => {
+        console.error('WebSocket error:', error);
+        connectedClients.delete(ws);
+    });
+});
+
+// Send periodic updates to all connected clients
+setInterval(() => {
+    if (connectedClients.size > 0) {
+        const updateData = {
+            type: 'update',
+            message: 'Server heartbeat',
+            timestamp: new Date().toLocaleTimeString(),
+            serverTime: new Date().toISOString(),
+            connectedClients: connectedClients.size
+        };
+        
+        connectedClients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify(updateData));
+            }
+        });
+    }
+}, 30000); // Every 30 seconds

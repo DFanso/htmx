@@ -465,7 +465,51 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
         </div>
         
         <div class="example-box">
-            <h3>🔧 Example 12: Request Headers & Configuration</h3>
+            <h3>📡 Example 12: WebSocket Real-time Communication</h3>
+            <p>HTMX can work with WebSockets for real-time bidirectional communication using <code>hx-ws</code>.</p>
+            
+            <div class="code-snippet">
+&lt;div hx-ws="connect:ws://localhost:3000"&gt;
+    &lt;form hx-ws="send:submit"&gt;
+        &lt;input name="message" placeholder="Type a message..."&gt;
+        &lt;button type="submit"&gt;Send&lt;/button&gt;
+    &lt;/form&gt;
+    &lt;div id="ws-messages"&gt;&lt;/div&gt;
+&lt;/div&gt;
+            </div>
+            
+            <div style="border: 2px solid #4fd1c7; border-radius: 8px; padding: 20px; background: #f0fffc;">
+                <h4>💬 Live Chat Demo</h4>
+                <div id="ws-status" style="margin-bottom: 15px;">
+                    <span class="websocket-status disconnected"></span>
+                    <span id="connection-status">Connecting to WebSocket...</span>
+                </div>
+                
+                <div id="ws-container">
+                    <form id="ws-form" style="margin-bottom: 15px;">
+                        <input type="text" id="username-input" placeholder="Your name" style="width: 30%; margin-right: 10px;" value="User">
+                        <input type="text" id="message-input" placeholder="Type a message..." style="width: 50%; margin-right: 10px;" required>
+                        <button type="submit" id="send-btn" disabled>Send</button>
+                    </form>
+                    
+                    <div id="ws-messages" style="height: 300px; border: 1px solid #e2e8f0; border-radius: 4px; padding: 10px; overflow-y: auto; background: white;">
+                        <p style="color: #666; font-style: italic;">Messages will appear here...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <p><strong>WebSocket Features:</strong></p>
+            <ul>
+                <li>Real-time bidirectional communication</li>
+                <li>Live connection status indicator</li>
+                <li>Broadcast messages to all connected clients</li>
+                <li>Automatic reconnection handling</li>
+                <li>Server heartbeat every 30 seconds</li>
+            </ul>
+        </div>
+        
+        <div class="example-box">
+            <h3>🔧 Example 13: Request Headers & Configuration</h3>
             <p>Customize requests with headers, include/exclude form data, and configure HTMX behavior.</p>
             
             <div class="code-snippet">
@@ -508,6 +552,107 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
         document.body.addEventListener('htmx:responseError', function(evt) {
             console.error('❌ HTMX Error:', evt.detail);
             evt.target.innerHTML = '<div class="error-message">⚠️ Something went wrong! Check the console.</div>';
+        });
+        
+        // WebSocket functionality
+        let ws;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        
+        function connectWebSocket() {
+            ws = new WebSocket('ws://localhost:3000');
+            
+            ws.onopen = function() {
+                console.log('📡 WebSocket connected');
+                document.getElementById('connection-status').textContent = 'Connected to WebSocket';
+                document.querySelector('.websocket-status').className = 'websocket-status connected';
+                document.getElementById('send-btn').disabled = false;
+                reconnectAttempts = 0;
+            };
+            
+            ws.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    const messagesDiv = document.getElementById('ws-messages');
+                    
+                    let messageHtml = '';
+                    
+                    switch(data.type) {
+                        case 'connection':
+                            messageHtml = `
+                                <div style="color: #22543d; background: #f0fff4; padding: 8px; margin: 5px 0; border-radius: 4px; border-left: 4px solid #38a169;">
+                                    <strong>✅ ${data.message}</strong><br>
+                                    <small>Connected at ${data.timestamp} | Clients online: ${data.clientCount}</small>
+                                </div>
+                            `;
+                            break;
+                        case 'message':
+                            messageHtml = `
+                                <div style="background: #edf2f7; padding: 8px; margin: 5px 0; border-radius: 4px;">
+                                    <strong style="color: #2d3748;">${data.username}:</strong> ${data.message}<br>
+                                    <small style="color: #718096;">${data.timestamp}</small>
+                                </div>
+                            `;
+                            break;
+                        case 'update':
+                            if (data.message === 'Server heartbeat') {
+                                document.getElementById('connection-status').textContent = 
+                                    `Connected | Clients: ${data.connectedClients} | Last heartbeat: ${data.timestamp}`;
+                            }
+                            break;
+                    }
+                    
+                    if (messageHtml) {
+                        messagesDiv.insertAdjacentHTML('beforeend', messageHtml);
+                        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                    }
+                } catch (error) {
+                    console.error('WebSocket message parsing error:', error);
+                }
+            };
+            
+            ws.onclose = function() {
+                console.log('📡 WebSocket disconnected');
+                document.getElementById('connection-status').textContent = 'Disconnected from WebSocket';
+                document.querySelector('.websocket-status').className = 'websocket-status disconnected';
+                document.getElementById('send-btn').disabled = true;
+                
+                // Attempt to reconnect
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    setTimeout(() => {
+                        console.log(`Attempting to reconnect... (${reconnectAttempts}/${maxReconnectAttempts})`);
+                        connectWebSocket();
+                    }, 3000);
+                }
+            };
+            
+            ws.onerror = function(error) {
+                console.error('📡 WebSocket error:', error);
+                document.getElementById('connection-status').textContent = 'WebSocket connection error';
+            };
+        }
+        
+        // Initialize WebSocket connection
+        document.addEventListener('DOMContentLoaded', function() {
+            connectWebSocket();
+            
+            // Handle form submission
+            document.getElementById('ws-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('username-input').value || 'Anonymous';
+                const message = document.getElementById('message-input').value.trim();
+                
+                if (message && ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        username: username,
+                        message: message
+                    }));
+                    
+                    document.getElementById('message-input').value = '';
+                }
+            });
         });
     </script>
 </body>
