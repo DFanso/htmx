@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn HTMX Interactive Tutorial</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .example-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .code-snippet {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        button {
+            background: #3182ce;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2c5aa0;
+        }
+        .response-area {
+            background: #e6fffa;
+            border: 2px solid #38b2ac;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            min-height: 50px;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .htmx-indicator {
+            opacity: 0;
+            transition: opacity 500ms ease-in;
+        }
+        .htmx-request .htmx-indicator {
+            opacity: 1;
+        }
+        .loading {
+            background: #fef5e7;
+            border: 1px solid #f6e05e;
+            padding: 10px;
+            border-radius: 4px;
+            color: #744210;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .error-message {
+            background: #fed7d7;
+            border: 1px solid #fc8181;
+            color: #c53030;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .websocket-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .connected { background: #48bb78; }
+        .disconnected { background: #f56565; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Interactive HTMX Learning Tutorial</h1>
+        <p>Welcome! This page will teach you HTMX concepts by building interactive examples. Each example shows the HTML code and demonstrates the concept in action.</p>
+        
+        <h2>📖 What is HTMX?</h2>
+        <p>HTMX allows you to access modern browser features directly from HTML, without writing JavaScript. It extends HTML with attributes that enable AJAX, CSS transitions, WebSockets and more.</p>
+        
+        <div class="example-box">
+            <h3>🎯 Example 1: Simple HTMX GET Request</h3>
+            <p>The most basic HTMX feature is loading content from the server. The <code>hx-get</code> attribute makes an AJAX GET request when triggered.</p>
+            
+            <div class="code-snippet">
+&lt;button hx-get="/api/hello" hx-target="#result1"&gt;
+    Click me!
+&lt;/button&gt;
+&lt;div id="result1"&gt;Response will appear here&lt;/div&gt;
+            </div>
+            
+            <p><strong>Try it:</strong></p>
+            <button hx-get="/api/hello" 
+                    hx-target="#result1">
+                Click me!
+            </button>
+            <div id="result1" class="response-area">Response will appear here</div>
+            
+            <p><strong>What happened:</strong></p>
+            <ul>
+                <li><code>hx-get</code> specifies the URL to fetch from</li>
+                <li><code>hx-target</code> specifies where to put the response</li>
+                <li>Default trigger is "click" for buttons</li>
+                <li>No JavaScript required!</li>
+            </ul>
+        </div>
+        
+        <div class="example-box">
+            <h3>⏱️ Example 2: Loading with Indicators</h3>
+            <p>HTMX provides built-in loading indicators. Elements with class <code>htmx-indicator</code> are shown during requests.</p>
+            
+            <div class="code-snippet">
+&lt;button hx-get="/api/slow-data" hx-target="#result2"&gt;
+    Load Data
+    &lt;span class="htmx-indicator loading"&gt;Loading...&lt;/span&gt;
+&lt;/button&gt;
+            </div>
+            
+            <button hx-get="/api/slow-data" 
+                    hx-target="#result2">
+                Load Data
+                <span class="htmx-indicator loading">Loading...</span>
+            </button>
+            <div id="result2" class="response-area">Click the button to load data</div>
+        </div>
+        
+        <div class="example-box">
+            <h3>📝 Example 3: Form Submission with POST</h3>
+            <p>HTMX can handle form submissions without page reloads. Use <code>hx-post</code> to submit form data via AJAX.</p>
+            
+            <div class="code-snippet">
+&lt;form hx-post="/api/submit" hx-target="#form-result"&gt;
+    &lt;input type="text" name="username" placeholder="Enter username"&gt;
+    &lt;button type="submit"&gt;Submit&lt;/button&gt;
+&lt;/form&gt;
+            </div>
+            
+            <form hx-post="/api/submit" 
+                  hx-target="#form-result">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                </div>
+                <button type="submit">Submit Form</button>
+            </form>
+            <div id="form-result" class="response-area">Submit the form to see the result</div>
+            
+            <p><strong>Key points:</strong></p>
+            <ul>
+                <li><code>hx-post</code> submits form data via POST request</li>
+                <li>Form data is automatically serialized</li>
+                <li>Default trigger for forms is "submit"</li>
+                <li>Prevents page reload automatically</li>
+            </ul>
+        </div>
+        
+        <div class="example-box">
+            <h3>🔄 Example 4: Different Swap Strategies</h3>
+            <p>HTMX offers different ways to insert content using <code>hx-swap</code>. The default is <code>innerHTML</code>.</p>
+            
+            <div class="code-snippet">
+&lt;button hx-get="/api/data" hx-target="#swap-demo" hx-swap="outerHTML"&gt;
+    Replace Entire Element
+&lt;/button&gt;
+            </div>
+            
+            <div id="swap-demo" class="response-area">Original content</div>
+            
+            <div style="margin: 10px 0;">
+                <button hx-get="/api/swap-inner" 
+                        hx-target="#swap-demo" 
+                        hx-swap="innerHTML">
+                    innerHTML (default)
+                </button>
+                
+                <button hx-get="/api/swap-outer" 
+                        hx-target="#swap-demo" 
+                        hx-swap="outerHTML">
+                    outerHTML
+                </button>
+                
+                <button hx-get="/api/swap-beforeend" 
+                        hx-target="#swap-demo" 
+                        hx-swap="beforeend">
+                    beforeend
+                </button>
+                
+                <button hx-get="/api/swap-afterbegin" 
+                        hx-target="#swap-demo" 
+                        hx-swap="afterbegin">
+                    afterbegin
+                </button>
+            </div>
+            
+            <p><strong>Swap options:</strong></p>
+            <ul>
+                <li><code>innerHTML</code> - Replace content inside element (default)</li>
+                <li><code>outerHTML</code> - Replace the entire element</li>
+                <li><code>beforeend</code> - Insert at end of element</li>
+                <li><code>afterbegin</code> - Insert at beginning of element</li>
+                <li><code>beforebegin</code> - Insert before element</li>
+                <li><code>afterend</code> - Insert after element</li>
+            </ul>
+        </div>
+        
+        <div class="example-box">
+            <h3>⚡ Example 5: Custom Triggers</h3>
+            <p>Use <code>hx-trigger</code> to specify when requests should be made. Default triggers vary by element type.</p>
+            
+            <div class="code-snippet">
+&lt;input hx-get="/search" hx-trigger="keyup changed delay:500ms" hx-target="#search-results"&gt;
+&lt;div hx-get="/poll" hx-trigger="every 2s" hx-target="#live-data"&gt;&lt;/div&gt;
+            </div>
+            
+            <div class="form-group">
+                <label>Search as you type (with delay):</label>
+                <input type="text" 
+                       placeholder="Type something..."
+                       hx-get="/api/search" 
+                       hx-trigger="keyup changed delay:500ms" 
+                       hx-target="#search-results"
+                       name="q">
+            </div>
+            <div id="search-results" class="response-area">Search results will appear here</div>
+            
+            <div style="margin: 20px 0;">
+                <p>Hover over this box for live updates:</p>
+                <div style="background: #e2e8f0; padding: 20px; border-radius: 5px; cursor: pointer;"
+                     hx-get="/api/hover" 
+                     hx-trigger="mouseenter" 
+                     hx-target="#hover-result">
+                    Hover over me!
+                </div>
+                <div id="hover-result" class="response-area">Hover result will appear here</div>
+            </div>
+            
+            <p><strong>Trigger examples:</strong></p>
+            <ul>
+                <li><code>click</code> - On click (default for buttons)</li>
+                <li><code>keyup</code> - On key release</li>
+                <li><code>change</code> - On value change</li>
+                <li><code>mouseenter</code> - On mouse hover</li>
+                <li><code>every 2s</code> - Every 2 seconds</li>
+                <li><code>load</code> - When element loads</li>
+                <li><code>delay:500ms</code> - Add delay modifier</li>
+            </ul>
+        </div>
+        
+        <div class="example-box">
+            <h3>🎉 Example 6: Putting It All Together</h3>
+            <p>A more complex example combining multiple HTMX features:</p>
+            
+            <div class="code-snippet">
+&lt;form hx-post="/api/todos" hx-target="#todo-list" hx-swap="beforeend"&gt;
+    &lt;input name="task" placeholder="Add a task" required&gt;
+    &lt;button type="submit"&gt;Add Task&lt;/button&gt;
+&lt;/form&gt;
+&lt;div id="todo-list"&gt;&lt;/div&gt;
+            </div>
+            
+            <form hx-post="/api/todos" 
+                  hx-target="#todo-list" 
+                  hx-swap="beforeend"
+                  style="margin-bottom: 20px;">
+                <div class="form-group">
+                    <input name="task" placeholder="Add a task..." required style="width: 70%; display: inline-block;">
+                    <button type="submit" style="width: 25%; display: inline-block;">Add Task</button>
+                </div>
+            </form>
+            <div id="todo-list" 
+                 style="min-height: 100px; border: 1px dashed #ccc; padding: 10px; border-radius: 4px;"
+                 hx-get="/api/todos" 
+                 hx-trigger="load">
+                <p style="color: #666; text-align: center;">Loading todos...</p>
+            </div>
+        </div>
+        
+        <div class="example-box" style="background: #f0f9ff; border: 1px solid #0ea5e9;">
+            <h3>🚀 Next Steps</h3>
+            <p><strong>Congratulations!</strong> You've learned the core HTMX concepts:</p>
+            <ul>
+                <li>✅ Making AJAX requests with <code>hx-get</code> and <code>hx-post</code></li>
+                <li>✅ Targeting elements with <code>hx-target</code></li>
+                <li>✅ Different swap strategies with <code>hx-swap</code></li>
+                <li>✅ Custom triggers with <code>hx-trigger</code></li>
+                <li>✅ Loading indicators with <code>htmx-indicator</code></li>
+            </ul>
+            
+            <p><strong>To continue learning:</strong></p>
+            <ul>
+                <li>Visit <a href="https://htmx.org/docs/" target="_blank">htmx.org/docs</a> for complete documentation</li>
+                <li>Try the examples on <a href="https://htmx.org/examples/" target="_blank">htmx.org/examples</a></li>
+                <li>Build your own project using these concepts!</li>
+                <li>Explore advanced features like WebSockets, Server-Sent Events, and animations</li>
+            </ul>
+        </div>
+        
+        <div class="example-box">
+            <h3>🎬 Example 7: CSS Transitions & Animations</h3>
+            <p>HTMX automatically applies CSS transitions when content changes. You can also use <code>hx-swap</code> modifiers for timing.</p>
+            
+            <div class="code-snippet">
+&lt;button hx-get="/api/fade-content" 
+        hx-target="#fade-demo" 
+        hx-swap="innerHTML settle:600ms"&gt;
+    Fade In Content
+&lt;/button&gt;
+            </div>
+            
+            <button hx-get="/api/fade-content" 
+                    hx-target="#fade-demo" 
+                    hx-swap="innerHTML settle:600ms">
+                Load with Animation
+            </button>
+            <div id="fade-demo" class="response-area">Click the button to see animated content</div>
+        </div>
+        
+        <div class="example-box">
+            <h3>❌ Example 8: Error Handling</h3>
+            <p>Handle errors gracefully with HTMX events and error responses from the server.</p>
+            
+            <div class="code-snippet">
+&lt;button hx-get="/api/error-demo" 
+        hx-target="#error-result"
+        hx-on:htmx:response-error="alert('Server error!')"&gt;
+    Trigger Error
+&lt;/button&gt;
+            </div>
+            
+            <button hx-get="/api/error-demo" 
+                    hx-target="#error-result">
+                Trigger Server Error
+            </button>
+            <button hx-get="/api/success-after-error" 
+                    hx-target="#error-result">
+                Success Response
+            </button>
+            <div id="error-result" class="response-area">Click buttons to test error handling</div>
+        </div>
+        
+        <div class="example-box">
+            <h3>🔄 Example 9: Polling & Auto-Refresh</h3>
+            <p>Use <code>hx-trigger="every Xs"</code> to automatically refresh content at intervals.</p>
+            
+            <div class="code-snippet">
+&lt;div hx-get="/api/live-time" 
+     hx-trigger="every 1s" 
+     hx-target="#live-clock"&gt;
+&lt;/div&gt;
+            </div>
+            
+            <div style="background: #f7fafc; padding: 15px; border-radius: 5px; text-align: center;">
+                <h4>🕐 Live Clock</h4>
+                <div id="live-clock" 
+                     hx-get="/api/live-time" 
+                     hx-trigger="load, every 1s"
+                     style="font-size: 24px; font-weight: bold; color: #2d3748;">
+                    Loading...
+                </div>
+            </div>
+            
+            <button onclick="htmx.findAll('[hx-trigger*=\"every\"]').forEach(el => htmx.trigger(el, 'htmx:abort'))">
+                Stop Auto-Refresh
+            </button>
+            <button onclick="location.reload()">
+                Restart Auto-Refresh
+            </button>
+        </div>
+        
+        <div class="example-box">
+            <h3>🧩 Example 10: Advanced Targeting</h3>
+            <p>HTMX offers powerful targeting options beyond simple IDs using CSS selectors.</p>
+            
+            <div class="code-snippet">
+&lt;button hx-get="/api/update-multiple" 
+        hx-target="closest .example-box"
+        hx-swap="beforeend"&gt;
+    Update Multiple Elements
+&lt;/button&gt;
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
+                <div class="update-target" style="background: #edf2f7; padding: 10px; border-radius: 4px;">
+                    <strong>Target 1:</strong> Original content
+                </div>
+                <div class="update-target" style="background: #edf2f7; padding: 10px; border-radius: 4px;">
+                    <strong>Target 2:</strong> Original content
+                </div>
+            </div>
+            
+            <button hx-get="/api/update-multiple" 
+                    hx-target=".update-target" 
+                    hx-swap="innerHTML">
+                Update All Targets
+            </button>
+            
+            <button hx-get="/api/add-item" 
+                    hx-target="closest .example-box" 
+                    hx-swap="beforeend">
+                Add Item Below
+            </button>
+            
+            <p><strong>Targeting options:</strong></p>
+            <ul>
+                <li><code>#myid</code> - Element with specific ID</li>
+                <li><code>.myclass</code> - All elements with class</li>
+                <li><code>closest .parent</code> - Nearest parent with class</li>
+                <li><code>find .child</code> - Child element with class</li>
+                <li><code>next .sibling</code> - Next sibling with class</li>
+                <li><code>previous .sibling</code> - Previous sibling with class</li>
+            </ul>
+        </div>
+        
+        <div class="example-box">
+            <h3>🔥 Example 11: HTMX Events & JavaScript Integration</h3>
+            <p>HTMX fires events that you can listen to with JavaScript for custom behavior.</p>
+            
+            <div class="code-snippet">
+document.body.addEventListener('htmx:beforeRequest', function(evt) {
+    console.log('Request starting:', evt.detail.xhr);
+});
+
+document.body.addEventListener('htmx:afterRequest', function(evt) {
+    console.log('Request completed:', evt.detail.xhr);
+});
+            </div>
+            
+            <button hx-get="/api/event-demo" 
+                    hx-target="#event-result"
+                    hx-on:htmx:before-request="this.innerHTML = 'Loading...'"
+                    hx-on:htmx:after-request="this.innerHTML = 'Click for Events Demo'">
+                Click for Events Demo
+            </button>
+            <div id="event-result" class="response-area">Watch the browser console for HTMX events</div>
+            
+            <p><strong>Common HTMX Events:</strong></p>
+            <ul>
+                <li><code>htmx:beforeRequest</code> - Before request is sent</li>
+                <li><code>htmx:afterRequest</code> - After request completes</li>
+                <li><code>htmx:beforeSwap</code> - Before content is swapped</li>
+                <li><code>htmx:afterSwap</code> - After content is swapped</li>
+                <li><code>htmx:load</code> - When new content is loaded</li>
+            </ul>
+        </div>
+        
+        <div class="example-box">
+            <h3>🔧 Example 12: Request Headers & Configuration</h3>
+            <p>Customize requests with headers, include/exclude form data, and configure HTMX behavior.</p>
+            
+            <div class="code-snippet">
+&lt;button hx-get="/api/headers-demo" 
+        hx-headers='{"X-Custom-Header": "MyValue"}'
+        hx-target="#headers-result"&gt;
+    Send Custom Headers
+&lt;/button&gt;
+            </div>
+            
+            <button hx-get="/api/headers-demo" 
+                    hx-headers='{"X-Custom-Header": "HTMX-Learning", "X-Requested-With": "HTMX"}'
+                    hx-target="#headers-result">
+                Send Custom Headers
+            </button>
+            <div id="headers-result" class="response-area">Click to see request headers</div>
+            
+            <div style="margin: 15px 0;">
+                <h4>Form with selective data:</h4>
+                <form hx-post="/api/selective-data" hx-target="#selective-result">
+                    <input name="included" placeholder="This will be sent" style="margin: 5px;">
+                    <input name="excluded" hx-include="false" placeholder="This won't be sent" style="margin: 5px;">
+                    <button type="submit">Submit Selective Data</button>
+                </form>
+                <div id="selective-result" class="response-area">Submit form to see which data is sent</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Add event listeners for demonstration
+        document.body.addEventListener('htmx:beforeRequest', function(evt) {
+            console.log('🚀 HTMX Request starting:', evt.detail);
+        });
+        
+        document.body.addEventListener('htmx:afterRequest', function(evt) {
+            console.log('✅ HTMX Request completed:', evt.detail);
+        });
+        
+        document.body.addEventListener('htmx:responseError', function(evt) {
+            console.error('❌ HTMX Error:', evt.detail);
+            evt.target.innerHTML = '<div class="error-message">⚠️ Something went wrong! Check the console.</div>';
+        });
+    </script>
+</body>
+</html>
