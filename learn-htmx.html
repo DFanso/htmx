@@ -399,7 +399,7 @@
                 </div>
             </div>
             
-            <button onclick="htmx.findAll('[hx-trigger*=\"every\"]').forEach(el => htmx.trigger(el, 'htmx:abort'))">
+            <button onclick="htmx.findAll('[hx-trigger*=&quot;every&quot;]').forEach(el => htmx.trigger(el, 'htmx:abort'))">
                 Stop Auto-Refresh
             </button>
             <button onclick="location.reload()">
